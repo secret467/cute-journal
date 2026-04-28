@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cozy Journal Pro 🌸</title>
+
+<style>
+
+/* ================= BASE ================= */
+body{
+font-family:Arial;
+margin:0;
+transition:.4s;
+color:var(--text);
+background:var(--bg);
+}
+
+/* ================= THEMES ================= */
+body.default{
+--bg:linear-gradient(135deg,#ffd6e0,#d6f0ff);
+--text:black;
+--card:white;
+}
+
+body.dark{
+--bg:#1e1e1e;
+--text:white;
+--card:#d3d3d3;
+}
+
+body.ocean{
+--bg:linear-gradient(135deg,#40e0d0,#89cff0);
+--text:white;
+--card:#003f5c;
+}
+
+body.forest{
+--bg:linear-gradient(135deg,#4caf50,#0b3d0b);
+--text:black;
+--card:#d9fdd3;
+}
+
+body.sunset{
+--bg:linear-gradient(135deg,#ffd1dc,#ffd8a8,#fff5ba);
+--text:white;
+--card:#ff69b4;
+}
+
+body.galaxy{
+--bg:linear-gradient(135deg,#2b1055,#0f2027);
+--text:white;
+--card:#caa8ff;
+}
+
+/* ================= BUTTONS ================= */
+button{
+padding:7px 12px;
+border:none;
+border-radius:10px;
+background:#ff6f91;
+color:white;
+margin:3px;
+cursor:pointer;
+}
+
+.page{display:none}
+
+/* ================= JOURNAL ================= */
+#journalWrapper{
+display:flex;
+justify-content:center;
+gap:30px;
+padding:20px;
+}
+
+#editor{
+background:var(--card);
+width:60%;
+min-height:450px;
+padding:25px;
+border-radius:12px;
+line-height:28px;
+outline:none;
+background-image:
+linear-gradient(to bottom,
+transparent 27px,
+rgba(0,0,0,.15) 28px);
+background-size:100% 28px;
+}
+
+.pageDate{
+text-align:right;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.sticker{font-size:26px;cursor:grab;margin:4px}
+.stickerPlaced{position:absolute;font-size:26px}
+
+/* ================= UPCOMING ================= */
+#upcomingBox{
+width:230px;
+background:var(--card);
+padding:12px;
+border-radius:10px;
+height:fit-content;
+}
+
+/* ================= CALENDAR ================= */
+#calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:5px;
+padding:10px;
+}
+
+.day{
+background:var(--card);
+padding:10px;
+border-radius:8px;
+min-height:70px;
+}
+
+/* ================= HEALTH ================= */
+
+.healthGrid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+width:92%;
+margin:auto;
+}
+
+.healthBox{
+height:45px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+border-radius:6px;
+cursor:pointer;
+user-select:none;
+
+/* FIXED VISIBILITY */
+background:#eeeeee;
+border:2px solid rgba(0,0,0,.15);
+transition:.25s;
+}
+
+.legend{
+text-align:center;
+margin:10px;
+}
+
+.legend span{
+display:inline-block;
+padding:5px 8px;
+margin:2px;
+border-radius:6px;
+color:#000;
+font-size:12px;
+}
+
+</style>
+</head>
+
+<body class="default">
+
+<h1 align="center">My Cozy Journal 💖</h1>
+
+<div align="center">
+<button onclick="show('loginPage')">Login</button>
+<button onclick="show('journalPage')">Journal</button>
+<button onclick="show('calendarPage')">Calendar</button>
+<button onclick="show('healthPage')">Health</button>
+<button onclick="show('themePage')">Themes</button>
+<button onclick="show('exportPage')">Export</button>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="page" align="center">
+<input id="userID" placeholder="ID">
+<input id="userPass" type="password" placeholder="Password">
+<br>
+<button onclick="login()">Login</button>
+<button onclick="resetLogin()">Reset Login</button>
+</div>
+
+<!-- JOURNAL -->
+<div id="journalPage" class="page">
+<div align="center">
+<span class="sticker" draggable="true">🌸</span>
+<span class="sticker" draggable="true">⭐</span>
+<span class="sticker" draggable="true">💖</span>
+<span class="sticker" draggable="true">🌈</span>
+</div>
+
+<div id="journalWrapper">
+<div id="editor"></div>
+
+<div id="upcomingBox">
+<h4>⭐ Upcoming</h4>
+<ul id="upcoming"></ul>
+</div>
+</div>
+</div>
+
+<!-- CALENDAR -->
+<div id="calendarPage" class="page">
+<div align="center">
+<button onclick="changeMonth(-1)">◀</button>
+<span id="monthTitle"></span>
+<button onclick="changeMonth(1)">▶</button>
+</div>
+
+<div align="center">
+<input id="eventName" placeholder="Event">
+<input type="date" id="eventDate">
+<button onclick="addEvent()">Add</button>
+</div>
+
+<div id="calendar"></div>
+</div>
+
+<!-- HEALTH -->
+<div id="healthPage" class="page">
+
+<h3 align="center">💧 Water Tracker (2L)</h3>
+<div class="legend" id="waterLegend"></div>
+<div id="waterGrid" class="healthGrid"></div>
+
+<h3 align="center">😴 Sleep Tracker (12 hrs)</h3>
+<div class="legend" id="sleepLegend"></div>
+<div id="sleepGrid" class="healthGrid"></div>
+
+<h3 align="center">😊 Emotion Tracker</h3>
+<div id="emotionGrid" class="healthGrid"></div>
+
+</div>
+
+<!-- THEMES -->
+<div id="themePage" class="page" align="center">
+<button onclick="setTheme('default')">Default</button>
+<button onclick="setTheme('dark')">Dark</button>
+<button onclick="setTheme('ocean')">Ocean</button>
+<button onclick="setTheme('forest')">Forest</button>
+<button onclick="setTheme('sunset')">Sunset</button>
+<button onclick="setTheme('galaxy')">Galaxy</button>
+</div>
+
+<!-- EXPORT -->
+<div id="exportPage" class="page" align="center">
+<button onclick="exportData()">Export Backup</button>
+</div>
+
+<script>
+
+/* PAGE NAV */
+function show(p){
+document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+document.getElementById(p).style.display="block";
+}
+
+/* LOGIN FIXED */
+function login(){
+let id=userID.value.trim();
+let pass=userPass.value.trim();
+if(!id||!pass){alert("Enter ID & Password");return;}
+
+if(!localStorage.loginID){
+localStorage.loginID=id;
+localStorage.loginPass=pass;
+localStorage.loggedIn="true";
+alert("Account Created");
+show("journalPage");
+return;
+}
+
+if(id===localStorage.loginID && pass===localStorage.loginPass){
+localStorage.loggedIn="true";
+show("journalPage");
+}else alert("Wrong ID or Password");
+}
+
+function resetLogin(){
+localStorage.removeItem("loginID");
+localStorage.removeItem("loginPass");
+localStorage.removeItem("loggedIn");
+alert("Login Reset — Journal Safe");
+}
+
+if(localStorage.loggedIn==="true") show("journalPage");
+else show("loginPage");
+
+/* THEME */
+function setTheme(t){
+document.body.className=t;
+localStorage.theme=t;
+}
+document.body.className=localStorage.theme||"default";
+
+/* JOURNAL */
+let currentDate=new Date().toISOString().slice(0,10);
+const editor=document.getElementById("editor");
+
+function loadEntry(){
+editor.innerHTML=
+`<div class="pageDate">${new Date(currentDate).toDateString()}</div>`
++(localStorage["journal_"+currentDate]||"");
+editor.contentEditable=true;
+}
+
+editor.addEventListener("input",()=>{
+let content=editor.innerHTML.replace(
+`<div class="pageDate">${new Date(currentDate).toDateString()}</div>`,"");
+localStorage["journal_"+currentDate]=content;
+});
+loadEntry();
+
+/* EVENTS */
+let events=JSON.parse(localStorage.events||"[]");
+
+function addEvent(){
+let name=eventName.value.trim();
+let date=eventDate.value;
+if(!name||!date)return;
+
+if(events.some(e=>e.name===name&&e.date===date)){
+alert("Already added");return;
+}
+
+events.push({name,date});
+localStorage.events=JSON.stringify(events);
+eventName.value="";
+eventDate.value="";
+renderCalendar();
+renderUpcoming();
+}
+
+function removeEvent(i){
+events.splice(i,1);
+localStorage.events=JSON.stringify(events);
+renderCalendar();
+renderUpcoming();
+}
+
+function renderUpcoming(){
+upcoming.innerHTML="";
+events.slice(0,5).forEach(e=>{
+let li=document.createElement("li");
+li.innerText=`${e.name} (${e.date})`;
+upcoming.appendChild(li);
+});
+}
+
+/* CALENDAR */
+let month=new Date();
+
+function changeMonth(n){
+month.setMonth(month.getMonth()+n);
+renderCalendar();
+}
+
+function renderCalendar(){
+calendar.innerHTML="";
+monthTitle.innerText=
+month.toLocaleString("default",{month:"long",year:"numeric"});
+
+let y=month.getFullYear();
+let m=month.getMonth();
+let days=new Date(y,m+1,0).getDate();
+
+for(let i=1;i<=days;i++){
+let date=y+"-"+String(m+1).padStart(2,"0")+"-"+String(i).padStart(2,"0");
+
+let d=document.createElement("div");
+d.className="day";
+d.innerHTML="<b>"+i+"</b>";
+
+events.forEach((ev,index)=>{
+if(ev.date===date){
+let e=document.createElement("div");
+e.innerHTML=`${ev.name}
+<button onclick="removeEvent(${index})">−</button>`;
+d.appendChild(e);
+}
+});
+
+calendar.appendChild(d);
+}
+renderUpcoming();
+}
+renderCalendar();
+
+/* HEALTH COLORS */
+
+const waterColors=["#e3f2fd","#bbdefb","#90caf9","#64b5f6","#42a5f5","#1e88e5","#0d47a1"];
+const sleepColors=["#fff3e0","#ffe0b2","#ffcc80","#ffb74d","#ffa726","#ff9800","#fb8c00","#f57c00","#ef6c00","#e65100","#bf360c","#5d4037"];
+const emotions=["😄","🙂","😐","😢","😡"];
+
+function buildLegend(id,colors,label){
+let box=document.getElementById(id);
+colors.forEach((c,i)=>{
+let s=document.createElement("span");
+s.style.background=c;
+s.innerText=label(i);
+box.appendChild(s);
+});
+}
+
+buildLegend("waterLegend",waterColors,i=>`${(i+1)*300}ml`);
+buildLegend("sleepLegend",sleepColors,i=>`${i+1}h`);
+
+function buildTracker(id,key,colors,emojiMode=false){
+let grid=document.getElementById(id);
+grid.innerHTML="";
+
+for(let i=1;i<=30;i++){
+let box=document.createElement("div");
+box.className="healthBox";
+
+let v=parseInt(localStorage[key+i]||0);
+box.style.background=colors?v?colors[v-1]:"#eeeeee":"#eeeeee";
+box.innerText=new Date(2025,0,i).getDate();
+
+if(emojiMode && v>0) box.innerText=emotions[v-1];
+
+box.onclick=()=>{
+v=(v+1)%(colors?colors.length+1:emotions.length+1);
+localStorage[key+i]=v;
+
+box.style.background=colors?v?colors[v-1]:"#eeeeee":"#eeeeee";
+box.innerText=emojiMode?(v?emotions[v-1]:""):i;
+};
+
+grid.appendChild(box);
+}
+}
+
+buildTracker("waterGrid","water",waterColors);
+buildTracker("sleepGrid","sleep",sleepColors);
+buildTracker("emotionGrid","emotion",null,true);
+
+/* EXPORT */
+function exportData(){
+let blob=new Blob(
+[JSON.stringify({...localStorage},null,2)],
+{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="cozy-journal.json";
+a.click();
+}
+
+</script>
+</body>
+</html>
